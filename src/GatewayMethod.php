@@ -60,6 +60,7 @@ class GatewayMethod extends WC_Payment_Gateway
 
     const EXPIRATION_TIME_MINUTES_LIMIT = 2880;
 
+    const ALLOWED_SIGNATURE_ALGORITHMS = ['sha1', 'sha256'];
 
     /**
      * Instance of placetopay to manage the connection with the webservice
@@ -300,6 +301,7 @@ class GatewayMethod extends WC_Payment_Gateway
             }
 
             [$algo, $signature] = explode(':', $data['signature'], 2);
+            $algo = strtolower(trim($algo));
 
             $this->logger(
                 'Signature algorithm parsed',
@@ -312,7 +314,25 @@ class GatewayMethod extends WC_Payment_Gateway
                 ]
             );
 
-            if (hash($algo, $expectedSignature) !== $signature) {
+            if (!in_array($algo, self::ALLOWED_SIGNATURE_ALGORITHMS, true)) {
+                $this->logger(
+                    'Unsupported notification signature algorithm',
+                    'notification',
+                    'warning',
+                    [
+                        'event' => 'notification.unsupported_algorithm',
+                        'algorithm' => $algo,
+                        'request_id' => $requestId,
+                    ]
+                );
+
+                return [
+                    'success' => $success,
+                    'message' => $message,
+                ];
+            }
+
+            if (!hash_equals(hash($algo, $expectedSignature), (string)$signature)) {
                 $this->logger(
                     'Invalid notification signature',
                     'notification',
@@ -323,10 +343,6 @@ class GatewayMethod extends WC_Payment_Gateway
                         'status' => $data['status']['status'] ?? null,
                     ]
                 );
-
-                if ($this->testmode === 'yes') {
-                    return hash($algo, $expectedSignature);
-                }
 
                 return [
                     'success' => $success,
