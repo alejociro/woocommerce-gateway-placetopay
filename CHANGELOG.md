@@ -2,6 +2,9 @@
 
 [Unreleased]
 
+## [3.2.5] - 2026-08-24
+- Resolve vulnerabilities.
+
 ## [3.2.4] - 2026-07-23
 - Fix generate white label, keep polyfill file.
 
