@@ -237,12 +237,6 @@ class WC_Gateway_PlacetoPay
 
     public function notificationReturnPage()
     {
-        static $alreadyRendered = false;
-
-        if ($alreadyRendered) {
-            return;
-        }
-
         if (empty($_REQUEST['order_key']) || empty($_REQUEST['payment_method'])) {
             return;
         }
@@ -269,8 +263,6 @@ class WC_Gateway_PlacetoPay
         if ($customerId && $customerId !== get_current_user_id()) {
             return;
         }
-
-        $alreadyRendered = true;
 
         wc_get_template('checkout/thankyou.php', ['order' => $order]);
     }
